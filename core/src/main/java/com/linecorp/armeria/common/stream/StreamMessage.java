@@ -132,8 +132,7 @@ public interface StreamMessage<T> extends Publisher<T> {
     /**
      * Creates a new {@link StreamMessage} that will publish the given {@code objs}.
      */
-    @SafeVarargs
-    static <T> StreamMessage<T> of(T... objs) {
+    @SafeVarargs static <T> StreamMessage<T> of(T... objs) {
         requireNonNull(objs, "objs");
         switch (objs.length) {
             case 0:
@@ -161,8 +160,7 @@ public interface StreamMessage<T> extends Publisher<T> {
         requireNonNull(publisher, "publisher");
 
         if (publisher instanceof StreamMessage) {
-            @SuppressWarnings("unchecked")
-            final StreamMessage<T> cast = (StreamMessage<T>) publisher;
+            @SuppressWarnings("unchecked") final StreamMessage<T> cast = (StreamMessage<T>) publisher;
             return cast;
         } else {
             return new PublisherBasedStreamMessage<>(publisher);
@@ -235,7 +233,7 @@ public interface StreamMessage<T> extends Publisher<T> {
      * @param bufferSize the maximum allowed size of the {@link HttpData} buffers
      */
     static StreamMessage<HttpData> of(Path path, ExecutorService executor, ByteBufAllocator alloc,
-                                      int bufferSize) {
+            int bufferSize) {
         requireNonNull(path, "path");
         requireNonNull(executor, "executor");
         requireNonNull(alloc, "alloc");
@@ -247,8 +245,7 @@ public interface StreamMessage<T> extends Publisher<T> {
      * Returns a concatenated {@link StreamMessage} which relays items of the specified array of
      * {@link Publisher}s in order, non-overlappingly, one after the other finishes.
      */
-    @SafeVarargs
-    static <T> StreamMessage<T> concat(Publisher<? extends T>... publishers) {
+    @SafeVarargs static <T> StreamMessage<T> concat(Publisher<? extends T>... publishers) {
         requireNonNull(publishers, "publishers");
         return concat(ImmutableList.copyOf(publishers));
     }
@@ -263,10 +260,8 @@ public interface StreamMessage<T> extends Publisher<T> {
         if (Iterables.isEmpty(publishers)) {
             return of();
         }
-        final List<StreamMessage<? extends T>> streamMessages = ImmutableList.copyOf(publishers)
-                                                                             .stream()
-                                                                             .map(StreamMessage::of)
-                                                                             .collect(toImmutableList());
+        final List<StreamMessage<? extends T>> streamMessages =
+                ImmutableList.copyOf(publishers).stream().map(StreamMessage::of).collect(toImmutableList());
         return new ConcatArrayStreamMessage<>(streamMessages);
     }
 
@@ -350,8 +345,7 @@ public interface StreamMessage<T> extends Publisher<T> {
      *   <li>Other exceptions that occurred due to an error while retrieving the elements.</li>
      * </ul>
      */
-    @Override
-    default void subscribe(Subscriber<? super T> subscriber) {
+    @Override default void subscribe(Subscriber<? super T> subscriber) {
         subscribe(subscriber, defaultSubscriberExecutor());
     }
 
@@ -441,8 +435,8 @@ public interface StreamMessage<T> extends Publisher<T> {
      * different depending on this {@link StreamMessage} implementation.
      */
     default EventExecutor defaultSubscriberExecutor() {
-        final EventLoop eventExecutor = RequestContext.mapCurrent(RequestContext::eventLoop,
-                                                                  CommonPools.workerGroup()::next);
+        final EventLoop eventExecutor =
+                RequestContext.mapCurrent(RequestContext::eventLoop, CommonPools.workerGroup()::next);
         assert eventExecutor != null;
         return eventExecutor;
     }
@@ -538,8 +532,7 @@ public interface StreamMessage<T> extends Publisher<T> {
     default <U> StreamMessage<U> map(Function<? super T, ? extends U> function) {
         requireNonNull(function, "function");
         if (function == Function.identity()) {
-            @SuppressWarnings("unchecked")
-            final StreamMessage<U> cast = (StreamMessage<U>) this;
+            @SuppressWarnings("unchecked") final StreamMessage<U> cast = (StreamMessage<U>) this;
             return cast;
         }
 
@@ -679,19 +672,23 @@ public interface StreamMessage<T> extends Publisher<T> {
     }
 
     /**
-     *  Provide general way to use {@link StreamMessages} by applying the specified {@link Function}.
+     * Writes this {@link StreamMessage} to the given {@link Path} with {@link OpenOption}s.
+     * See {@link StreamMessages#writeTo} for the details.
      *
-     *  <p>Example:<pre>{@code
-     *  ByteBuf[] bufs = new ByteBuf[10];
-     *  for(int i=0; i<10; i++){
-     *             bufs[i] = Unpooled.wrappedBuffer(Integer.toString(i).getBytes());
-     *   }
-     *  StreamMessage<ByteBuf> streamMessage = StreamMessage.of(bufs);
-     *  streamMessage.writeTo( x -> HttpData.wrap())
-     *  }</pre></p>
+     * <p>Example:<pre>{@code
+     * Path destination = Paths.get("foo.bin");
+     * ByteBuf[] bufs = new ByteBuf[10];
+     * for(int i = 0; i < 10; i++) {
+     *     bufs[i] = Unpooled.wrappedBuffer(Integer.toString(i).getBytes());
+     * }
+     * StreamMessage<ByteBuf> streamMessage = StreamMessage.of(bufs);
+     * streamMessage.writeTo( x -> HttpData.wrap(x),destination).join;
+     *
+     * assert Files.readAllBytes(destination).contains(bufs.map(ByteBuf::array).reduce(Bytes::concat).get());
+     * }</pre>
      */
-    default CompletableFuture<Void> writeTo(
-            Function<? super T, ? extends HttpData> mapper, Path destination, OpenOption... options) {
+    default CompletableFuture<Void> writeTo(Function<? super T, ? extends HttpData> mapper, Path destination,
+                                            OpenOption... options) {
         requireNonNull(mapper, "mapper");
         requireNonNull(destination, "destination");
         requireNonNull(options, "options");

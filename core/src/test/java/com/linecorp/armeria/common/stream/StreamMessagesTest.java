@@ -54,8 +54,8 @@ class StreamMessagesTest {
         }
         final HttpData[] httpData = bufs.stream().map(HttpData::wrap).toArray(HttpData[]::new);
         final byte[] expected = Arrays.stream(httpData)
-                                      .map(HttpData::array)
-                                      .reduce(Bytes::concat).get();
+                .map(HttpData::array)
+                .reduce(Bytes::concat).get();
 
         final StreamMessage<HttpData> publisher = StreamMessage.of(httpData);
         final Path destination = tempDir.resolve("foo.bin");
@@ -73,7 +73,7 @@ class StreamMessagesTest {
         assertThatThrownBy(() -> {
             StreamMessages.writeTo(StreamMessage.of(), tempDir.resolve("bar.txt"), StandardOpenOption.READ);
         }).isInstanceOf(IllegalArgumentException.class)
-          .hasMessage("READ not allowed");
+                .hasMessage("READ not allowed");
     }
 
     @Test
