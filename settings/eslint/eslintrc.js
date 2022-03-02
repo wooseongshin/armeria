@@ -14,7 +14,6 @@ const commonRules = {
   'prefer-destructuring': 'off',
   'react/destructuring-assignment': 'off',
   'react/jsx-props-no-spreading': 'off',
-  'react/require-default-props': 'off',
   'no-continue': 'off',
   'no-restricted-syntax': [
     'error',

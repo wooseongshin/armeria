@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIf;
 
 import com.linecorp.armeria.common.HttpData;
 
@@ -29,7 +28,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.compression.BrotliDecoder;
 
-@EnabledIf("io.netty.handler.codec.compression.Brotli#isAvailable")
 class BrotliStreamDecoderTest {
     private static final byte[] PAYLOAD = { -117, 1, -128, 77, 101, 111, 119, 3};
 

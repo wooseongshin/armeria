@@ -334,11 +334,7 @@ const DebugPage: React.FunctionComponent<Props> = ({
       copyTextToClipboard(curlCommand);
       showSnackbar('The curl command has been copied to the clipboard.');
     } catch (e) {
-      if (e instanceof Object) {
-        setDebugResponse(e.toString());
-      } else {
-        setDebugResponse('<unknown>');
-      }
+      setDebugResponse(e.toString());
     }
   }, [
     useRequestBody,
@@ -399,11 +395,7 @@ const DebugPage: React.FunctionComponent<Props> = ({
           queries,
         );
       } catch (e) {
-        if (e instanceof Object) {
-          executedDebugResponse = e.toString();
-        } else {
-          executedDebugResponse = '<unknown>';
-        }
+        executedDebugResponse = e.toString();
       }
       setDebugResponse(executedDebugResponse);
     },
@@ -463,11 +455,7 @@ const DebugPage: React.FunctionComponent<Props> = ({
         params.delete('headers');
       }
     } catch (e) {
-      if (e instanceof Object) {
-        setDebugResponse(e.toString());
-      } else {
-        setDebugResponse('<unknown>');
-      }
+      setDebugResponse(e.toString());
       return;
     }
 
