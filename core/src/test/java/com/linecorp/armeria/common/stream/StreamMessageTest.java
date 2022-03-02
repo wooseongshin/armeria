@@ -22,22 +22,15 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import com.google.common.primitives.Bytes;
-import io.netty.buffer.Unpooled;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
@@ -126,7 +119,7 @@ class StreamMessageTest {
     @ParameterizedTest
     @ArgumentsSource(StreamProvider.class)
     void flowControlled_writeThenDemandThenProcess_eventLoop(StreamMessage<Integer> stream,
-                                                             List<Integer> values) {
+            List<Integer> values) {
         writeTenIntegers(stream);
         eventLoop.get().submit(
                 () ->
@@ -276,37 +269,13 @@ class StreamMessageTest {
         await().untilAsserted(() -> assertThat(buf.refCnt()).isZero());
     }
 
-    @TempDir
-    static Path tempDir;
-
-    @Test
-    void defaultWriteStream() throws IOException {
-        final List<ByteBuf> bufs = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            bufs.add(Unpooled.wrappedBuffer(Integer.toString(i).getBytes()));
-        }
-        final HttpData[] httpData = bufs.stream().map(HttpData::wrap).toArray(HttpData[]::new);
-        final byte[] expected = Arrays.stream(httpData)
-                .map(HttpData::array)
-                .reduce(Bytes::concat).get();
-        final StreamMessage<ByteBuf> publisher = StreamMessage.of(bufs.stream().toArray(ByteBuf[]::new));
-        final Path destination = tempDir.resolve("foo.bin");
-        publisher.writeTo(byteBuf -> HttpData.wrap(byteBuf), destination).join();
-        final byte[] bytes = Files.readAllBytes(destination);
-
-        assertThat(bytes).contains(expected);
-        for (ByteBuf buf : bufs) {
-            assertThat(buf.refCnt()).isZero();
-        }
-    }
-
     @Test
     void abortedStream() {
         final Throwable cause = new IllegalStateException("oops");
         final StreamMessage<Object> stream = StreamMessage.aborted(cause);
         StepVerifier.create(stream)
-                    .expectErrorMatches(ex -> ex == cause)
-                    .verify();
+                .expectErrorMatches(ex -> ex == cause)
+                .verify();
     }
 
     private static class StreamProvider implements ArgumentsProvider {
@@ -333,7 +302,7 @@ class StreamMessageTest {
             final StreamMessage<HttpData> fixedStream = StreamMessage.of(fixedData);
 
             return Stream.of(arguments(defaultData, defaultBuf, defaultStream),
-                             arguments(fixedData, fixedBuf, fixedStream));
+                    arguments(fixedData, fixedBuf, fixedStream));
         }
     }
 
